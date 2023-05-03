@@ -1,0 +1,56 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\User;
+use App\Http\Requests\UserReaderRequest;
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Foundation\Auth\RegistersUsers;
+use Illuminate\Support\Facades\DB;
+use App\Reader;
+
+class UserReaderController extends Controller
+{
+    use RegistersUsers;
+     /**
+     * Show the form for creating a new resource.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function create()
+    {
+        return view('auth.create');
+    }
+    
+    /**
+     * Store a newly created resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store(UserReaderRequest $request)
+    {
+        xdebug_break();
+        $input = $request->all();
+        DB::transaction($output = function () use ($input) {
+        $user = User::create([
+            'name' => $input['name'],
+            'email' => $input['email'],
+            'password' => bcrypt($input['password']),
+            'level' => 30,
+            ]);
+        Reader::create([
+            'user_id' => $user['id'],
+            'name' => $input['reader_name'],
+            'school_number' => $input['school_number'],
+            'department_Id' => $input['department_id'],
+            ]); 
+        xdebug_break();
+        return $user;
+        });
+        event(new Registered($output));
+        $this->guard()->login(tput);        
+        return $this->registered($request, $output)
+        ?: redirect($this->redirectPath());
+    }
+}
